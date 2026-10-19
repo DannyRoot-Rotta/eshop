@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: notification-config
+  labels:
+    app.kubernetes.io/part-of: eshop
+data:
+  OTEL_SERVICE_NAME: notification-service
+  LOG_LEVEL: info
+  DB_HOST: notification-db
+  DB_PORT: "5432"
+  KAFKA_BOOTSTRAP: kafka:9092
+  KAFKA_GROUP: notification-service
+  MAX_ATTEMPTS: "3"
+  RETRY_BASE_MS: "200"
+  RETRY_CAP_MS: "5000"

@@ -1,0 +1,9 @@
+node_modules/
+.env
+*.log
+.tools/
+onedrive-guides/
+guides-text/
+OneDrive_2026-10-19.zip
+k8s/*secret*.yaml
+!k8s/secrets.example.yaml

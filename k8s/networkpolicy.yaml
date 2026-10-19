@@ -1,0 +1,143 @@
+# Mappa: docs/resilienza-m3.md. Applicarle solo se nel namespace non esiste già
+# una policy che ammette tutto il traffico interno: in quel caso le regole non stringono.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: default-deny
+spec:
+  podSelector: {}
+  policyTypes: [Ingress]
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: order-from-router
+spec:
+  podSelector:
+    matchLabels:
+      deployment: order-service
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              policy-group.network.openshift.io/ingress: ""
+      ports:
+        - port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: catalog-from-order
+spec:
+  podSelector:
+    matchLabels:
+      deployment: catalog-service
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              deployment: order-service
+      ports:
+        - port: 8080
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: kafka-from-services
+spec:
+  podSelector:
+    matchLabels:
+      app: kafka
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              deployment: order-service
+        - podSelector:
+            matchLabels:
+              deployment: notification-service
+        - podSelector:
+            matchLabels:
+              deployment: payment-service
+      ports:
+        - port: 9092
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: catalog-db-from-catalog
+spec:
+  podSelector:
+    matchLabels:
+      name: catalog-db
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              deployment: catalog-service
+      ports:
+        - port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: order-db-from-order
+spec:
+  podSelector:
+    matchLabels:
+      name: order-db
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              deployment: order-service
+      ports:
+        - port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: notification-db-from-notification
+spec:
+  podSelector:
+    matchLabels:
+      name: notification-db
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              deployment: notification-service
+      ports:
+        - port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: payment-db-from-payment
+spec:
+  podSelector:
+    matchLabels:
+      name: payment-db
+  ingress:
+    - from:
+        - podSelector:
+            matchLabels:
+              deployment: payment-service
+      ports:
+        - port: 5432
+---
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: metrics-from-monitoring
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/part-of: eshop
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              network.openshift.io/policy-group: monitoring
+      ports:
+        - port: 8080

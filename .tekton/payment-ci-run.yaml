@@ -1,0 +1,24 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  generateName: payment-ci-
+  labels:
+    app.kubernetes.io/part-of: eshop
+spec:
+  pipelineRef:
+    name: payment-ci
+  params:
+    - name: repo-url
+      value: https://github.com/DannyRoot-Rotta/eshop
+    - name: revision
+      value: main
+  taskRunTemplate:
+    serviceAccountName: pipeline
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes: [ReadWriteOnce]
+          resources:
+            requests:
+              storage: 1Gi

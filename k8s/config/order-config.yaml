@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: order-config
+  labels:
+    app.kubernetes.io/part-of: eshop
+data:
+  OTEL_SERVICE_NAME: order-service
+  LOG_LEVEL: info
+  DB_HOST: order-db
+  DB_PORT: "5432"
+  KAFKA_BOOTSTRAP: kafka:9092
+  RELAY_ENABLED: "true"
+  CATALOG_URL: http://catalog-service:8080
+  CATALOG_TIMEOUT_MS: "800"
+  CATALOG_RETRIES: "2"
+  RETRY_BASE_MS: "100"
+  RETRY_CAP_MS: "1000"
+  CB_TIMEOUT_MS: "2500"
+  CB_ERROR_PERCENT: "50"
+  CB_VOLUME: "10"
+  CB_WINDOW_MS: "10000"
+  CB_RESET_MS: "15000"
+  CB_CAPACITY: "50"
+  SAGA_TIMEOUT_S: "30"
+  MAX_ATTEMPTS: "3"

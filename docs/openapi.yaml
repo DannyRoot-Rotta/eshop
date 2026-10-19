@@ -1,0 +1,128 @@
+openapi: 3.0.3
+info:
+  title: eshop
+  version: "1.0.0"
+  description: Contratto REST minimo di catalog-service, order-service, notification-service e payment-service.
+paths:
+  /health/live:
+    get:
+      summary: Liveness, solo il processo
+      responses:
+        "200":
+          description: Processo vivo
+  /health/ready:
+    get:
+      summary: Readiness, database e consumer dove serve
+      responses:
+        "200":
+          description: Pronto
+        "503":
+          description: Dipendenza assente
+  /health:
+    get:
+      summary: Sinonimo di /health/ready
+      responses:
+        "200":
+          description: Pronto
+        "503":
+          description: Non pronto
+  /products:
+    get:
+      summary: Elenco dei prodotti pubblicati
+      responses:
+        "200":
+          description: Array di prodotti
+    post:
+      summary: Crea un prodotto
+      responses:
+        "201":
+          description: Prodotto creato
+        "400":
+          description: Corpo non valido
+  /products/{id}:
+    get:
+      summary: Dettaglio prodotto
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Prodotto
+        "404":
+          description: Prodotto inesistente
+  /orders:
+    post:
+      summary: Crea un ordine copiando nome e prezzo dal catalogo
+      responses:
+        "201":
+          description: Ordine in stato PLACED
+        "400":
+          description: Righe assenti o quantità non valida
+        "422":
+          description: Un prodotto non esiste
+        "503":
+          description: Catalogo non disponibile, header Retry-After
+  /orders/{id}:
+    get:
+      summary: Dettaglio ordine con le righe copiate
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Ordine
+        "404":
+          description: Ordine inesistente
+  /orders/{id}/confirm:
+    post:
+      summary: Avvia la saga di pagamento
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        "202":
+          description: Saga avviata, stato PAYMENT_PENDING
+        "200":
+          description: Saga già avviata, stato invariato
+        "404":
+          description: Ordine inesistente
+  /notifications:
+    get:
+      summary: Notifiche registrate per un ordine
+      parameters:
+        - name: orderId
+          in: query
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Elenco notifiche
+  /payments/{orderId}:
+    get:
+      summary: Stato del pagamento simulato
+      parameters:
+        - name: orderId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Riga di payment
+        "404":
+          description: Nessun pagamento
+  /metrics:
+    get:
+      summary: Metriche Prometheus
+      responses:
+        "200":
+          description: Testo Prometheus

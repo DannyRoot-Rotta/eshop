@@ -1,0 +1,122 @@
+apiVersion: image.openshift.io/v1
+kind: ImageStream
+metadata:
+  name: catalog-service
+  labels:
+    app: catalog-service
+    app.kubernetes.io/part-of: eshop
+spec:
+  lookupPolicy:
+    local: false
+---
+apiVersion: build.openshift.io/v1
+kind: BuildConfig
+metadata:
+  name: catalog-service
+  labels:
+    app: catalog-service
+    app.kubernetes.io/part-of: eshop
+spec:
+  source:
+    type: Git
+    git:
+      uri: https://github.com/DannyRoot-Rotta/eshop
+      ref: main
+    contextDir: catalog-service
+  strategy:
+    type: Source
+    sourceStrategy:
+      from:
+        kind: ImageStreamTag
+        namespace: openshift
+        name: nodejs:22-ubi9
+  output:
+    to:
+      kind: ImageStreamTag
+      name: catalog-service:latest
+  triggers:
+    - type: ConfigChange
+    - type: ImageChange
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: catalog-service
+  labels:
+    app: catalog-service
+    app.kubernetes.io/part-of: eshop
+  annotations:
+    image.openshift.io/triggers: '[{"from":{"kind":"ImageStreamTag","name":"catalog-service:latest"},"fieldPath":"spec.template.spec.containers[?(@.name==\"catalog-service\")].image"}]'
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deployment: catalog-service
+  template:
+    metadata:
+      labels:
+        app: catalog-service
+        deployment: catalog-service
+        app.kubernetes.io/part-of: eshop
+    spec:
+      containers:
+        - name: catalog-service
+          image: image-registry.openshift-image-registry.svc:5000/daniele-vespa-dev/catalog-service:latest
+          ports:
+            - name: 8080-tcp
+              containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: catalog-config
+          env:
+            - name: DB_DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: catalog-db
+                  key: database-user
+            - name: DB_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: catalog-db
+                  key: database-password
+            - name: DB_DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: catalog-db
+                  key: database-name
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            failureThreshold: 3
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 20
+            failureThreshold: 3
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: catalog-service
+  labels:
+    app: catalog-service
+    app.kubernetes.io/part-of: eshop
+spec:
+  selector:
+    deployment: catalog-service
+  ports:
+    - name: 8080-tcp
+      port: 8080
+      targetPort: 8080

@@ -1,0 +1,57 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: payment-service
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      deployment: payment-service
+  template:
+    metadata:
+      labels:
+        deployment: payment-service
+        app: payment-service
+    spec:
+      containers:
+        - name: payment-service
+          image: payment-service
+          ports:
+            - containerPort: 8080
+          envFrom:
+            - configMapRef:
+                name: payment-config
+          env:
+            - name: DB_DATABASE_USER
+              valueFrom:
+                secretKeyRef:
+                  name: payment-db
+                  key: database-user
+            - name: DB_DATABASE_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: payment-db
+                  key: database-password
+            - name: DB_DATABASE_NAME
+              valueFrom:
+                secretKeyRef:
+                  name: payment-db
+                  key: database-name
+          resources:
+            requests:
+              cpu: 50m
+              memory: 128Mi
+            limits:
+              cpu: 300m
+              memory: 256Mi
+          readinessProbe:
+            httpGet:
+              path: /health/ready
+              port: 8080
+            periodSeconds: 5
+          livenessProbe:
+            httpGet:
+              path: /health/live
+              port: 8080
+            periodSeconds: 10
+            failureThreshold: 3

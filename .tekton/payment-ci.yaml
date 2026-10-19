@@ -1,0 +1,70 @@
+apiVersion: tekton.dev/v1
+kind: Pipeline
+metadata:
+  name: payment-ci
+  labels:
+    app.kubernetes.io/part-of: eshop
+spec:
+  params:
+    - name: repo-url
+    - name: revision
+      default: main
+  workspaces:
+    - name: source
+  tasks:
+    - name: clone
+      taskRef:
+        resolver: cluster
+        params:
+          - name: kind
+            value: task
+          - name: name
+            value: git-clone
+          - name: namespace
+            value: openshift-pipelines
+      params:
+        - name: URL
+          value: $(params.repo-url)
+        - name: REVISION
+          value: $(params.revision)
+      workspaces:
+        - name: output
+          workspace: source
+    - name: test
+      runAfter: [clone]
+      workspaces:
+        - name: source
+          workspace: source
+      taskSpec:
+        workspaces:
+          - name: source
+        steps:
+          - name: npm-test
+            image: registry.access.redhat.com/ubi9/nodejs-22:latest
+            workingDir: $(workspaces.source.path)/payment-service
+            env:
+              - name: HOME
+                value: /tmp
+            script: |
+              npm ci --no-audit --no-fund
+              npm test
+    - name: build-image
+      runAfter: [test]
+      params:
+        - name: commit
+          value: $(tasks.clone.results.COMMIT)
+      taskSpec:
+        params:
+          - name: commit
+        results:
+          - name: tag
+        steps:
+          - name: build-and-tag
+            image: image-registry.openshift-image-registry.svc:5000/openshift/cli:latest
+            script: |
+              set -e
+              SHA=$(echo "$(params.commit)" | cut -c1-7)
+              oc start-build payment-service --commit="$(params.commit)" --wait --follow
+              oc tag payment-service:latest "payment-service:${SHA}"
+              echo "immagine pronta: payment-service:${SHA}"
+              printf '%s' "$SHA" > "$(results.tag.path)"

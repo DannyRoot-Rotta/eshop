@@ -1,0 +1,73 @@
+<mxfile host="app.diagrams.net" type="device">
+  <diagram id="c4" name="C4 Container">
+    <mxGraphModel dx="1200" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="900">
+      <root>
+        <mxCell id="0"/>
+        <mxCell id="1" parent="0"/>
+        <mxCell id="user" value="Cliente" style="shape=mxgraph.c4.person2;whiteSpace=wrap;html=1;" vertex="1" parent="1">
+          <mxGeometry x="40" y="280" width="120" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="route" value="Route order-service&#10;HTTPS edge" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#fff2cc;" vertex="1" parent="1">
+          <mxGeometry x="220" y="300" width="160" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="order" value="order-service&#10;Node.js&#10;saga + outbox" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;" vertex="1" parent="1">
+          <mxGeometry x="440" y="180" width="180" height="90" as="geometry"/>
+        </mxCell>
+        <mxCell id="catalog" value="catalog-service&#10;Node.js" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;" vertex="1" parent="1">
+          <mxGeometry x="440" y="40" width="180" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="payment" value="payment-service&#10;Node.js" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;" vertex="1" parent="1">
+          <mxGeometry x="440" y="360" width="180" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="notify" value="notification-service&#10;Node.js" style="rounded=1;whiteSpace=wrap;html=1;fillColor=#dae8fc;" vertex="1" parent="1">
+          <mxGeometry x="440" y="520" width="180" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="kafka" value="Kafka&#10;orders.events&#10;payment.commands&#10;payment.events" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=#ffe6cc;" vertex="1" parent="1">
+          <mxGeometry x="720" y="250" width="180" height="140" as="geometry"/>
+        </mxCell>
+        <mxCell id="cdb" value="catalog-db" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#d5e8d4;" vertex="1" parent="1">
+          <mxGeometry x="980" y="30" width="120" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="odb" value="order-db" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#d5e8d4;" vertex="1" parent="1">
+          <mxGeometry x="980" y="180" width="120" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="pdb" value="payment-db" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#d5e8d4;" vertex="1" parent="1">
+          <mxGeometry x="980" y="350" width="120" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="ndb" value="notification-db" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=#d5e8d4;" vertex="1" parent="1">
+          <mxGeometry x="980" y="510" width="140" height="70" as="geometry"/>
+        </mxCell>
+        <mxCell id="e1" style="endArrow=block;html=1;" edge="1" parent="1" source="user" target="route">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e2" value="HTTPS" style="endArrow=block;html=1;" edge="1" parent="1" source="route" target="order">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e3" value="REST prezzo" style="endArrow=block;html=1;" edge="1" parent="1" source="order" target="catalog">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e4" value="payment.* chiave=orderId" style="endArrow=block;dashed=1;html=1;" edge="1" parent="1" source="order" target="kafka">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e5" value="orders.events" style="endArrow=block;dashed=1;html=1;" edge="1" parent="1" source="kafka" target="notify">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e6" style="endArrow=block;dashed=1;html=1;" edge="1" parent="1" source="kafka" target="payment">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e7" value="SQL" style="endArrow=block;html=1;" edge="1" parent="1" source="catalog" target="cdb">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e8" value="SQL" style="endArrow=block;html=1;" edge="1" parent="1" source="order" target="odb">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e9" value="SQL" style="endArrow=block;html=1;" edge="1" parent="1" source="payment" target="pdb">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+        <mxCell id="e10" value="SQL" style="endArrow=block;html=1;" edge="1" parent="1" source="notify" target="ndb">
+          <mxGeometry relative="1" as="geometry"/>
+        </mxCell>
+      </root>
+    </mxGraphModel>
+  </diagram>
+</mxfile>

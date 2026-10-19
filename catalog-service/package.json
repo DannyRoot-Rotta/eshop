@@ -1,13 +1,20 @@
 {
-  "name": "eshop-service",
+  "name": "catalog-service",
   "version": "1.0.0",
-  "description": "Microservizio e-shop",
-  "main": "index.js",
+  "private": true,
+  "description": "Catalogo prodotti dell'e-shop",
+  "main": "server.js",
   "scripts": {
-    "start": "node index.js"
+    "start": "node --require ./tracing.js server.js"
   },
   "dependencies": {
-    "express": "^4.19.2",
-    "pg": "^8.11.3"
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.56.0",
+    "@opentelemetry/sdk-node": "^0.57.0",
+    "@opentelemetry/sdk-trace-base": "^1.30.0",
+    "express": "^4.21.2",
+    "pg": "^8.13.1",
+    "pino": "^10.0.0",
+    "prom-client": "^15.1.3"
   }
 }

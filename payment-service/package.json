@@ -1,0 +1,22 @@
+{
+  "name": "payment-service",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Pagamenti simulati dell'e-shop",
+  "main": "server.js",
+  "scripts": {
+    "start": "node --require ./tracing.js server.js",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "@confluentinc/kafka-javascript": "^1.3.0",
+    "@opentelemetry/api": "^1.9.0",
+    "@opentelemetry/auto-instrumentations-node": "^0.56.0",
+    "@opentelemetry/sdk-node": "^0.57.0",
+    "@opentelemetry/sdk-trace-base": "^1.30.0",
+    "express": "^4.21.2",
+    "pg": "^8.13.1",
+    "pino": "^10.0.0",
+    "prom-client": "^15.1.3"
+  }
+}

@@ -1,0 +1,14 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: eshop
+  labels:
+    app.kubernetes.io/part-of: eshop
+spec:
+  selector:
+    matchLabels:
+      app.kubernetes.io/part-of: eshop
+  endpoints:
+    - port: 8080-tcp
+      path: /metrics
+      interval: 30s
