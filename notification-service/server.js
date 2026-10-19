@@ -174,7 +174,7 @@ async function startConsumer() {
   dlq = kafka.producer({ kafkaJS: { acks: -1 } });
   await dlq.connect();
   await consumer.connect();
-  await consumer.subscribe({ topics: ['orders.events'], fromBeginning: true });
+  await consumer.subscribe({ topics: ['orders.events'] });
   consumerReady = true;
   log.info('consumer: in ascolto su orders.events');
   await consumer.run({ eachMessage: handle });

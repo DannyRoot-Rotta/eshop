@@ -17,7 +17,7 @@ async function consume({ topic, groupId, dlqTopic, pool, handler, onReady }) {
   });
   const dlq = kafka.producer({ kafkaJS: { acks: -1 } });
   await Promise.all([consumer.connect(), dlq.connect()]);
-  await consumer.subscribe({ topics: [topic], fromBeginning: true });
+  await consumer.subscribe({ topics: [topic] });
   if (typeof onReady === 'function') onReady();
   const tracer = trace.getTracer(groupId);
 

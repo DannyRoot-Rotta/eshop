@@ -49,7 +49,8 @@ spec:
                   value: /tmp
               command: [bash, -c]
               args:
-                - git clone --quiet --depth 1 --branch "$GIT_REF" "$GIT_URL" /work/repo &&
+                - |
+                  git clone --quiet --depth 1 --branch "$GIT_REF" "$GIT_URL" /work/repo
                   echo "commit: $(git -C /work/repo rev-parse --short HEAD)"
               volumeMounts:
                 - name: work
