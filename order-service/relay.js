@@ -39,7 +39,14 @@ function startRelay(pool) {
     }
     if (running || !connected || process.env.RELAY_ENABLED === 'false') return;
     running = true;
-    const db = await pool.connect();
+    let db;
+    try {
+      db = await pool.connect();
+    } catch (err) {
+      running = false;
+      log.info({ error: err.message }, 'relay: pubblicazione non riuscita, riprovo al prossimo giro');
+      return;
+    }
     try {
       await db.query('BEGIN');
       const { rows } = await db.query(
@@ -76,7 +83,9 @@ function startRelay(pool) {
   }
 
   if (process.env.KAFKA_BOOTSTRAP) connectProducer();
-  setInterval(relayOnce, 1000).unref();
+  setInterval(() => {
+    relayOnce().catch((err) => log.info({ error: err.message }, 'relay: pubblicazione non riuscita, riprovo al prossimo giro'));
+  }, 1000).unref();
 }
 
 module.exports = { startRelay };

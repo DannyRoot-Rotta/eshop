@@ -232,20 +232,25 @@ async function main() {
     });
   }
 
-  setInterval(async () => {
-    const db = await pool.connect();
+  setInterval(() => {
+    expireOnce().catch((err) => log.error({ error: err.message }, 'controllo delle scadenze fallito'));
+  }, 5000).unref();
+
+  async function expireOnce() {
+    let db;
     try {
+      db = await pool.connect();
       await db.query('BEGIN');
       const n = await expireSagas(db);
       await db.query('COMMIT');
       if (n > 0) log.warn({ annullati: n }, 'saghe scadute annullate');
     } catch (err) {
-      await db.query('ROLLBACK').catch(() => {});
+      if (db) await db.query('ROLLBACK').catch(() => {});
       log.error({ error: err.message }, 'controllo delle scadenze fallito');
     } finally {
-      db.release();
+      if (db) db.release();
     }
-  }, 5000).unref();
+  }
 
   app.listen(PORT, '0.0.0.0', () => {
     log.info({ port: PORT }, 'order-service in ascolto');
