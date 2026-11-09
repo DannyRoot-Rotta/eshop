@@ -1,24 +1,12 @@
 # Verifiche Milestone 1
 
-## 6.1 Service discovery
+Osservato sul cluster il 29 ottobre 2026.
 
-`oc scale deploy/catalog-service --replicas=3` fa crescere gli indirizzi in `oc get endpoints catalog-service`. order-service continua a chiamare il nome `catalog-service`: non conosce gli IP.
-
-## 6.2 Pod non pronti
-
-Se `/health/ready` risponde 503, l'indirizzo esce dagli endpoint e ci rientra quando il database torna. Poi le repliche vanno riportate a 1.
-
-## 6.3 Rilascio indipendente
-
-`oc rollout restart deploy/catalog-service` non ricrea i Pod di order-service. Una modifica al catalogo si pubblica con `oc start-build catalog-service` senza ricostruire gli ordini.
-
-## 6.4 Database non condiviso
-
-`oc set env deploy/order-service --list` mostra solo `order-db`. Nessuna variabile punta a `catalog-db`.
-
-## 6.5 Fallimento parziale
-
-Con catalog-service a zero repliche, `POST /orders` risponde 503 entro il budget di 2,5 secondi. `GET /orders/{id}` degli ordini già salvati continua a rispondere 200.
+- 6.1 Da 1 indirizzo a 3: `10.129.14.15`, `10.131.21.139`, `10.131.21.158`. Poi le repliche sono tornate a 1.
+- 6.2 Con catalog-db spento, dopo 25 secondi un indirizzo era ancora presente. Aspettando 45 secondi gli endpoint sono diventati vuoti; riacceso il database è tornato un indirizzo.
+- 6.3 Il rollout di catalog-service non ha ricreato il pod di order-service, rimasto quello avviato alle 10:55:33 UTC.
+- 6.4 Le variabili del database di order-service puntano solo a `order-db` (`DB_HOST`, nome, utente, porta). Nessuna cita `catalog-db`.
+- 6.5 Con l'HPA tolto e catalog-service a zero repliche, `POST /orders` ha risposto 503 in 0,66 secondi con «catalogo momentaneamente non disponibile». `GET /orders/1` ha risposto 200. L'HPA è stato ricreato e il catalogo riportato a una replica. Con l'HPA attivo lo scale a zero viene rifiutato, perché il minimo è 1.
 
 ## 6.6 Domanda di controllo
 

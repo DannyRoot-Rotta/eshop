@@ -1,15 +1,20 @@
 # Verifiche Milestone 4
 
-All'avvio vanno annotati anche questi permessi:
+Permessi osservati: create su pipelineruns.tekton.dev, cronjobs e rolebindings è consentito.
 
-```bash
-oc api-resources --api-group=tekton.dev
-oc auth can-i create pipelineruns.tekton.dev
-oc auth can-i create cronjobs
-oc auth can-i create rolebindings
-```
+## Osservato il 29 ottobre 2026
 
-## Esiti attesi
+- 7.1 La conferma ha risposto 202. L'ordine è poi risultato `CONFIRMED`, il pagamento `AUTHORIZED` e nel log di notification-service c'era l'email.
+- 7.2 Un ordine da 60000 centesimi (50 tazze) ha avuto il pagamento `REJECTED` con motivo «importo oltre il limite di 500 euro». L'ordine è passato a `CANCELLED` con `pagamento rifiutato: importo oltre il limite di 500 euro`.
+- 7.3 Con payment-service spento, dopo 40 secondi l'ordine 40 era `CANCELLED` per «nessuna risposta dal pagamento entro il tempo massimo». Al ritorno del servizio il pagamento è `VOIDED` con motivo «autorizzazione arrivata dopo l'annullamento».
+- 7.4 Una seconda conferma dell'ordine 1 ha risposto 200. Il reset di `payment.commands` è stato rifiutato perché il gruppo `payment-service` era ancora Stable, quindi i `duplicato` da rilettura non sono stati contati.
+- 7.5 In `payment.dlq` c'è `non sono json` con `x-errore` e `x-origine: payment.commands/2/5`.
+- 7.6 La Pipeline `payment-ci` è nel cluster, ma nessuna PipelineRun è stata eseguita. L'overlay punta ancora a `payment-service:latest`. Il 9 novembre la console non riconosce più l'utente, quindi build, tag dello sha e rollback non sono stati rifatti.
+- 7.7 Con payment-service a zero repliche e `PAYMENT_LIMIT_CENTS=100`, un job con il service account `riconciliatore` ha applicato `k8s/overlays/sandbox`. Subito dopo le repliche erano 1 e il limite 50000.
+
+Il riconciliatore è stato sospeso durante le prove che spengono payment-service, poi riattivato.
+
+## Esiti attesi dalla guida
 
 - 7.1 La conferma risponde 202 con `PAYMENT_PENDING`. Pochi secondi dopo l'ordine è `CONFIRMED`, il pagamento `AUTHORIZED`, e nei log c'è l'email di conferma. Lo stesso trace id compare in order, payment e notification.
 - 7.2 Un ordine oltre 500 euro finisce `CANCELLED`, il pagamento `REJECTED`, il motivo cita il limite, e l'email è di annullamento.

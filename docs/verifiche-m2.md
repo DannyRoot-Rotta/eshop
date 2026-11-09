@@ -1,15 +1,15 @@
 # Verifiche Milestone 2
 
-Le prove 6.1–6.8 si eseguono sul namespace con i comandi della guida. Qui le conseguenze attese e le risposte alla 6.9.
+Osservato sul cluster il 29 ottobre 2026.
 
-- 6.1 La seconda conferma, anche in parallelo, lascia una sola riga in outbox: `FOR UPDATE` serializza le due transazioni e la seconda trova lo stato già diverso da `PLACED`.
-- 6.2 Con notification-service spento le conferme rispondono comunque. Il LAG sale e, al ritorno del consumatore, torna a 0: le email partono dopo.
-- 6.3 Rimettendo `published_at` a null, il relay ripubblica lo stesso id. Il log dice `duplicato scartato` e `GET /notifications` resta a una riga.
-- 6.4 Un reset degli offset all'inizio del topic produce solo duplicati, nessuna email nuova.
-- 6.5 Con Kafka spento la conferma risponde lo stesso. La riga resta in outbox e parte quando il broker torna.
-- 6.6 Il riavvio di Kafka non perde il messaggio: volume persistente e `CLUSTER_ID` fisso. Senza volume i topic spariscono.
-- 6.7 `RELAY_ENABLED=false` lascia la riga non pubblicata. Rimesso a true, l'evento esce e l'email arriva.
-- 6.8 Un payload che non è JSON finisce in `notification.dlq` con `x-errore` e `x-origine`. L'ordine successivo viene elaborato.
+- 6.1 La prima conferma dell'ordine 2 ha risposto 202. La seconda ha risposto 200. In outbox ci sono due righe con la stessa chiave: il comando `payment.commands` e, dopo l'autorizzazione, l'evento `orders.events`. La seconda conferma non ne ha aggiunta una terza.
+- 6.2 Con notification-service spento il gruppo non aveva membri e il LAG era 1, 3 e 0 sulle tre partizioni. Al ritorno il LAG è tornato a 0 su tutte.
+- 6.3 Rimettere `published_at` a null ha prodotto una riga `duplicato scartato` e nessuna email nuova nello stesso intervallo.
+- 6.4 Il reset di `orders.events` per il gruppo `notification-service` è stato rifiutato: lo stato del gruppo era ancora Stable. Senza membri inattivi Kafka non sposta gli offset, quindi la rilettura non è stata osservata.
+- 6.5 Con Kafka a zero repliche la conferma ha risposto 202 e in outbox c'era una riga senza `published_at`. A broker tornato, le righe non pubblicate erano 0.
+- 6.6 Lo stesso spegnimento e riavvio ha consegnato la riga rimasta in outbox. Il volume e il `CLUSTER_ID` non sono stati cancellati.
+- 6.7 Con `RELAY_ENABLED=false` nel processo nuovo, la conferma 202 dell'ordine 63 ha lasciato 1 riga non pubblicata. Rimesso `true` e riavviato il servizio, le righe non pubblicate sono tornate a 0.
+- 6.8 Il testo `questo non e JSON` è in `notification.dlq` con header `x-errore` e `x-origine: orders.events/2/3`.
 
 ## 6.9
 

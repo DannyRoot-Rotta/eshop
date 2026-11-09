@@ -1,17 +1,20 @@
 # Verifiche Milestone 3
 
-Permessi da annotare all'avvio, sul namespace:
+Permessi osservati il 29 ottobre 2026: create su servicemonitors, networkpolicies e horizontal pod autoscalers è consentito. Nel namespace ci sono già policy `allow-from-codeready-workspaces-operator`, `allow-from-console-namespaces`, `allow-from-dev-sandbox-managed-ns`, `allow-from-olm-namespaces`, `allow-from-openshift-ingress` e `allow-from-openshift-monitoring`. Una NetworkPolicy nostra si sommerebbe a queste, quindi non stringe il traffico: il disegno resta in `docs/resilienza-m3.md` e `k8s/networkpolicy.yaml` non è stato applicato.
 
-```bash
-oc auth can-i create servicemonitors.monitoring.coreos.com
-oc auth can-i create networkpolicies
-oc auth can-i create horizontalpodautoscalers
-oc get networkpolicy
-```
+## Osservato
 
-Il ServiceMonitor è in `k8s/servicemonitor.yaml` e si applica solo se il primo comando risponde yes. Le NetworkPolicy stanno in `k8s/networkpolicy.yaml`: se una policy del namespace ammette già tutto il traffico interno, le regole non stringono e resta valido il disegno in `docs/resilienza-m3.md`.
+- 6.1 Con `CATALOG_DELAY_MS=5000` nel processo nuovo, venti `POST /orders` paralleli hanno risposto tutti 503. Nel log: 40 `ritento la chiamata` e un `circuito aperto`. La richiesta successiva ha risposto 503 in 0,37 secondi. Il ritardo va letto all'avvio: un rollout che lascia in servizio il pod vecchio non lo applica.
+- 6.2 Tolto il ritardo e riavviato solo il catalogo, dopo 16 secondi un ordine ha risposto 201 in 0,42 secondi e `circuit_breaker_state` era 0.
+- 6.3 Venti ordini sul prodotto 999999 hanno risposto tutti 422, con zero `ritento la chiamata`.
+- 6.4 La creazione ha usato il trace `cee34df293bc630880bbb5bb5944d094` anche nel catalogo. La conferma ha usato `2ebe2bc521670056073227608cca1db3` anche in notification-service.
+- 6.5 `http_server_duration_seconds_count` ha le route `/orders` e `/orders/:id/confirm`, non l'id dell'ordine.
+- 6.6 Con order-db spento il pod è diventato non pronto e i restart sono passati da 0 a 1. La correzione, che chiude l'errore di connessione nel relay e nel controllo scadenze, è nel commit `f339e56`. L'immagine nuova non è stata costruita: il 9 novembre la console, dopo il login Red Hat, risponde «Could not find user».
+- 6.7 Sotto carico le repliche pronte di catalog-service sono passate da 1 a 3.
+- 6.8 La password di catalog-db è stata cambiata nel Secret, il database e catalog-service sono stati riavviati, `/health/ready` ha risposto 200 e il numero di build è rimasto 13. Il ServiceMonitor `eshop` è stato creato.
+- 6.9 `CB_RESET_MS` è rimasto 15000 nel processo subito dopo la modifica della ConfigMap. Dopo il rollout del solo order-service era 30000. Poi è stato riportato a 15000.
 
-## Esiti attesi
+## Esiti attesi dalla guida
 
 - 6.1 Venti ordini in parallelo contro un catalogo rallentato di 5 secondi rispondono 503 in circa 2,5 secondi, con due righe `ritento la chiamata` e poi `circuito aperto`. La richiesta successiva risponde 503 in pochi millisecondi, con `Retry-After: 15`.
 - 6.2 A ritardo tolto, senza riavviare order-service, compaiono `circuito semiaperto` e `circuito chiuso`. La metrica `circuit_breaker_state` torna a 0 e l'ordine risponde 201.
