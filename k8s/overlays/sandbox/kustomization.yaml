@@ -5,4 +5,4 @@ resources:
 images:
   - name: payment-service
     newName: image-registry.openshift-image-registry.svc:5000/daniele-vespa-dev/payment-service
-    newTag: f9522ca
+    newTag: latest
