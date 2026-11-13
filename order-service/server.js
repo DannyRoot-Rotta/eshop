@@ -1,3 +1,4 @@
+const path = require('path');
 const express = require('express');
 const { Pool } = require('pg');
 const { context, propagation } = require('@opentelemetry/api');
@@ -188,6 +189,24 @@ app.post('/orders/:id/confirm', async (req, res) => {
   }
 });
 
+app.get('/orders', async (req, res) => {
+  try {
+    const { rows } = await pool.query(
+      `SELECT o.id, o.customer_id, o.status, o.cancel_reason, o.created_at,
+              COALESCE(SUM(l.unit_price_cents * l.quantity), 0)::int AS total_cents
+         FROM customer_order o
+         LEFT JOIN order_line l ON l.order_id = o.id
+        GROUP BY o.id
+        ORDER BY o.id DESC
+        LIMIT 8`
+    );
+    res.json(rows);
+  } catch (err) {
+    log.error({ error: err.message }, 'elenco ordini non riuscito');
+    res.status(500).json({ error: err.message });
+  }
+});
+
 app.get('/orders/:id', async (req, res) => {
   try {
     const order = await loadOrder(req.params.id);
@@ -198,6 +217,23 @@ app.get('/orders/:id', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
+app.get('/products', async (req, res) => {
+  try {
+    const response = await fetch(`${process.env.CATALOG_URL}/products`, {
+      signal: AbortSignal.timeout(2000),
+    });
+    if (!response.ok) {
+      return res.status(503).json({ error: 'catalogo momentaneamente non disponibile, riprovare più tardi' });
+    }
+    res.json(await response.json());
+  } catch (err) {
+    log.error({ error: err.message }, 'elenco prodotti non riuscito');
+    res.status(503).json({ error: 'catalogo momentaneamente non disponibile, riprovare più tardi' });
+  }
+});
+
+app.use(express.static(path.join(__dirname, 'public')));
 
 app.get('/metrics', metricsEndpoint);
 

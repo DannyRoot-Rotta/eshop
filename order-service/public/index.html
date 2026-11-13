@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>eshop — bottega</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,620&family=Outfit:wght@380;520;640&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --ink: #241910;
+      --muted: #6d5e52;
+      --line: #e6d9c8;
+      --paper: #f4efe6;
+      --card: #fffaf4;
+      --clay: #c4512c;
+      --clay-dark: #8d3418;
+      --moss: #2d5a45;
+      --gold: #a56b22;
+      --shadow: 0 18px 50px rgba(56, 32, 14, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(900px 420px at 100% -10%, #f8e2d2 0%, transparent 55%),
+        var(--paper);
+      font-family: Outfit, "Segoe UI", sans-serif;
+      font-weight: 380;
+    }
+    .top {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 18px 6vw;
+      background: rgba(244, 239, 230, 0.9);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid transparent;
+    }
+    .brand {
+      font-family: Fraunces, Georgia, serif;
+      font-size: 1.7rem;
+      font-weight: 620;
+      letter-spacing: -0.03em;
+    }
+    .brand-note { color: var(--muted); margin-right: auto; }
+    button, input { font: inherit; color: inherit; }
+    .hero { padding: 42px 6vw 10px; max-width: 760px; }
+    .eyebrow {
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      color: var(--clay-dark);
+      margin: 0 0 8px;
+    }
+    h1 {
+      font-family: Fraunces, Georgia, serif;
+      font-weight: 500;
+      font-size: clamp(2.6rem, 6vw, 4.6rem);
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      margin: 0 0 14px;
+    }
+    .lede { font-size: 1.15rem; color: var(--muted); max-width: 38rem; }
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 1.5fr) minmax(280px, 0.7fr);
+      gap: 22px;
+      padding: 18px 6vw 28px;
+      align-items: start;
+    }
+    .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .product, .panel, .history article {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 22px;
+      box-shadow: var(--shadow);
+    }
+    .product { padding: 18px 18px 16px; display: flex; flex-direction: column; min-height: 280px; }
+    .art {
+      height: 132px;
+      border-radius: 16px;
+      display: grid;
+      place-items: center;
+      margin-bottom: 14px;
+    }
+    .cup { background: linear-gradient(160deg, #f7d7c4, #f3eee4); }
+    .shirt { background: linear-gradient(160deg, #d9ebe3, #f3eee4); }
+    .product h2 { font-family: Fraunces, Georgia, serif; font-weight: 500; font-size: 1.8rem; margin: 0; }
+    .price { color: var(--muted); margin: 4px 0 14px; }
+    .stepper { margin-top: auto; display: flex; align-items: center; gap: 10px; }
+    .stepper button, .primary, .ghost {
+      border: 0;
+      cursor: pointer;
+    }
+    .stepper button {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: var(--ink);
+      color: #fffaf4;
+      font-size: 1.2rem;
+    }
+    .stepper strong { min-width: 1.2rem; text-align: center; }
+    .panel { padding: 20px; position: sticky; top: 84px; }
+    .panel h2, .history h2 { font-family: Fraunces, Georgia, serif; font-weight: 500; margin: 0 0 8px; }
+    .cart-line, .order-row {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--line);
+    }
+    .muted { color: var(--muted); }
+    .total { display: flex; justify-content: space-between; margin: 14px 0; font-size: 1.15rem; }
+    label { display: block; font-size: 0.82rem; color: var(--muted); margin-bottom: 6px; }
+    input {
+      width: 100%;
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: white;
+    }
+    .primary, .ghost { width: 100%; border-radius: 999px; padding: 12px 16px; margin-top: 10px; }
+    .primary { background: var(--clay); color: white; font-weight: 640; }
+    .primary:disabled { opacity: 0.5; cursor: default; }
+    .ghost { background: transparent; border: 1px solid var(--line); }
+    .track { display: flex; gap: 8px; margin: 14px 0; }
+    .track span {
+      flex: 1;
+      font-size: 0.75rem;
+      padding-top: 8px;
+      border-top: 3px solid var(--line);
+      color: var(--muted);
+    }
+    .track span.on { border-color: var(--clay); color: var(--ink); }
+    .track span.good { border-color: var(--moss); color: var(--moss); }
+    .track span.bad { border-color: var(--clay-dark); color: var(--clay-dark); }
+    .note { margin-top: 10px; line-height: 1.45; }
+    .history { padding: 0 6vw 56px; }
+    .history-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; }
+    .history article { padding: 14px 16px; box-shadow: none; }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 2px 8px;
+      background: #f0e6da;
+      font-size: 0.78rem;
+    }
+    .CONFIRMED { color: var(--moss); }
+    .CANCELLED { color: var(--clay-dark); }
+    .PAYMENT_PENDING, .PLACED { color: var(--gold); }
+    .empty { color: var(--muted); padding: 8px 0 4px; }
+    @media (max-width: 900px) {
+      .layout, .grid, .history-list { grid-template-columns: 1fr; }
+      .panel { position: static; }
+      .brand-note { display: none; }
+    }
+  </style>
+</head>
+<body>
+  <header class="top">
+    <div class="brand">eshop</div>
+    <div class="brand-note">il prezzo si copia sull'ordine, il pagamento arriva dopo</div>
+  </header>
+  <section class="hero">
+    <p class="eyebrow">Bottega</p>
+    <h1>Due cose, fatte bene.</h1>
+    <p class="lede">Scegli, crea l'ordine, poi confermalo. Lo stato resta in attesa finché il pagamento non risponde.</p>
+  </section>
+  <div class="layout">
+    <section class="grid" id="grid"></section>
+    <aside class="panel">
+      <h2>Carrello</h2>
+      <div id="cart"></div>
+      <label for="customer">Cliente</label>
+      <input id="customer" value="C-001">
+      <button class="primary" id="place">Crea ordine</button>
+      <button class="primary" id="confirm" hidden>Conferma e paga</button>
+      <div class="track" id="track" hidden>
+        <span>Creato</span><span>Pagamento</span><span>Esito</span>
+      </div>
+      <div class="note" id="note"></div>
+    </aside>
+  </div>
+  <section class="history">
+    <h2>Ultimi ordini</h2>
+    <div class="history-list" id="history"></div>
+  </section>
+  <script>
+    const euro = (cents) => (Number(cents) / 100).toLocaleString('it-IT', { style: 'currency', currency: 'EUR' });
+    const esc = (value) => String(value ?? '').replace(/[&<>"']/g, (ch) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[ch]));
+    const cart = new Map();
+    let products = [];
+    let current = null;
+
+    const cup = `<svg width="88" height="72" viewBox="0 0 88 72" fill="none"><path d="M18 18h40v28a14 14 0 0 1-14 14H32A14 14 0 0 1 18 46V18Z" fill="#fffaf4" stroke="#241910" stroke-width="2.4"/><path d="M58 26h8a10 10 0 0 1 0 20h-8" stroke="#241910" stroke-width="2.4"/><path d="M28 8c2 4 2 4 0 8M38 6c2 4 2 4 0 8M48 8c2 4 2 4 0 8" stroke="#c4512c" stroke-width="2" stroke-linecap="round"/></svg>`;
+    const shirt = `<svg width="88" height="72" viewBox="0 0 88 72" fill="none"><path d="M34 14l10 8 10-8 14 10-8 8v28H28V32l-8-8 14-10Z" fill="#fffaf4" stroke="#241910" stroke-width="2.4" stroke-linejoin="round"/><path d="M38 14c1.5 4 10.5 4 12 0" stroke="#2d5a45" stroke-width="2"/></svg>`;
+
+    function drawCart() {
+      const box = document.querySelector('#cart');
+      const chosen = products.filter((p) => cart.get(p.id) > 0);
+      if (!chosen.length) {
+        box.innerHTML = '<p class="empty">Il carrello è vuoto.</p>';
+      } else {
+        box.innerHTML = chosen.map((p) => {
+          const qty = cart.get(p.id);
+          return `<div class="cart-line"><span>${esc(p.name)} × ${qty}</span><span>${euro(p.price_cents * qty)}</span></div>`;
+        }).join('') + `<div class="total"><span>Totale</span><strong>${euro(chosen.reduce((sum, p) => sum + p.price_cents * cart.get(p.id), 0))}</strong></div>`;
+      }
+    }
+
+    function drawProducts() {
+      document.querySelector('#grid').innerHTML = products.map((p) => {
+        const kind = /tazza/i.test(p.name) ? 'cup' : 'shirt';
+        return `<article class="product">
+          <div class="art ${kind}">${kind === 'cup' ? cup : shirt}</div>
+          <h2>${esc(p.name)}</h2>
+          <div class="price">${euro(p.price_cents)}</div>
+          <div class="stepper">
+            <button type="button" data-step="-1" data-id="${p.id}" aria-label="Meno ${esc(p.name)}">−</button>
+            <strong>${cart.get(p.id) || 0}</strong>
+            <button type="button" data-step="1" data-id="${p.id}" aria-label="Più ${esc(p.name)}">+</button>
+          </div>
+        </article>`;
+      }).join('');
+      drawCart();
+    }
+
+    function lines() {
+      return products
+        .filter((p) => cart.get(p.id) > 0)
+        .map((p) => ({ product_id: p.id, quantity: cart.get(p.id) }));
+    }
+
+    function setTrack(step, outcome) {
+      const track = document.querySelector('#track');
+      track.hidden = false;
+      [...track.children].forEach((node, index) => {
+        node.className = index < step ? 'on' : '';
+        if (index === 2 && outcome) node.className = outcome;
+      });
+    }
+
+    async function loadHistory() {
+      const box = document.querySelector('#history');
+      const response = await fetch('/orders');
+      if (!response.ok) {
+        box.innerHTML = '<p class="empty">Gli ordini non si leggono.</p>';
+        return;
+      }
+      const orders = await response.json();
+      box.innerHTML = orders.map((order) => `
+        <article>
+          <strong>#${order.id}</strong>
+          <div class="badge ${esc(order.status)}">${esc(order.status)}</div>
+          <div class="muted">${euro(order.total_cents)}</div>
+        </article>
+      `).join('') || '<p class="empty">Nessun ordine.</p>';
+    }
+
+    document.querySelector('#grid').addEventListener('click', (event) => {
+      const button = event.target.closest('[data-step]');
+      if (!button) return;
+      const id = Number(button.dataset.id);
+      const next = Math.max(0, (cart.get(id) || 0) + Number(button.dataset.step));
+      if (next) cart.set(id, next);
+      else cart.delete(id);
+      current = null;
+      document.querySelector('#confirm').hidden = true;
+      document.querySelector('#track').hidden = true;
+      document.querySelector('#note').textContent = '';
+      drawProducts();
+    });
+
+    document.querySelector('#place').addEventListener('click', async () => {
+      const chosen = lines();
+      const note = document.querySelector('#note');
+      if (!chosen.length) {
+        note.textContent = 'Aggiungi almeno un pezzo.';
+        return;
+      }
+      const button = document.querySelector('#place');
+      button.disabled = true;
+      note.textContent = 'Creo l\'ordine…';
+      const response = await fetch('/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customer_id: document.querySelector('#customer').value.trim(), lines: chosen }),
+      });
+      const data = await response.json();
+      button.disabled = false;
+      if (!response.ok) {
+        note.textContent = data.error || 'Ordine rifiutato';
+        return;
+      }
+      current = data;
+      setTrack(1);
+      note.innerHTML = `Ordine <strong>#${data.id}</strong> creato. Totale ${euro(data.total_cents)}. Il prezzo è quello copiato adesso.`;
+      document.querySelector('#confirm').hidden = false;
+      loadHistory();
+    });
+
+    document.querySelector('#confirm').addEventListener('click', async () => {
+      const button = document.querySelector('#confirm');
+      const note = document.querySelector('#note');
+      button.disabled = true;
+      const response = await fetch(`/orders/${current.id}/confirm`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: '{}',
+      });
+      const data = await response.json();
+      if (!response.ok) {
+        note.textContent = data.error || 'Conferma non riuscita';
+        button.disabled = false;
+        return;
+      }
+      setTrack(2);
+      note.textContent = 'Pagamento in corso. La conferma non chiude l\'ordine da sola.';
+      for (let attempt = 0; attempt < 20; attempt++) {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+        const read = await fetch(`/orders/${current.id}`);
+        const order = await read.json();
+        if (order.status === 'CONFIRMED' || order.status === 'CANCELLED') {
+          setTrack(3, order.status === 'CONFIRMED' ? 'good' : 'bad');
+          note.innerHTML = `Ordine <strong>#${order.id}</strong> · ${esc(order.status)}${order.cancel_reason ? `<br>${esc(order.cancel_reason)}` : ''}<br>Totale ${euro(order.total_cents)}`;
+          button.hidden = true;
+          button.disabled = false;
+          loadHistory();
+          return;
+        }
+      }
+      button.disabled = false;
+    });
+
+    fetch('/products').then(async (response) => {
+      if (!response.ok) throw new Error('catalogo');
+      products = await response.json();
+      drawProducts();
+      loadHistory();
+    }).catch(() => {
+      document.querySelector('#grid').innerHTML = '<p class="empty">Il catalogo non risponde.</p>';
+    });
+  </script>
+</body>
+</html>
