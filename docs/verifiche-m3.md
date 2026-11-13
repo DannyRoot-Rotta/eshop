@@ -1,17 +1,17 @@
 # Verifiche Milestone 3
 
-Permessi osservati il 29 ottobre 2026: create su servicemonitors, networkpolicies e horizontal pod autoscalers è consentito. Nel namespace ci sono già policy `allow-from-codeready-workspaces-operator`, `allow-from-console-namespaces`, `allow-from-dev-sandbox-managed-ns`, `allow-from-olm-namespaces`, `allow-from-openshift-ingress` e `allow-from-openshift-monitoring`. Una NetworkPolicy nostra si sommerebbe a queste, quindi non stringe il traffico: il disegno resta in `docs/resilienza-m3.md` e `k8s/networkpolicy.yaml` non è stato applicato.
+Permessi osservati il 13 novembre 2026: create su servicemonitors e horizontal pod autoscalers è consentito. Nel namespace ci sono già policy `allow-from-codeready-workspaces-operator`, `allow-from-console-namespaces`, `allow-from-dev-sandbox-managed-ns`, `allow-from-olm-namespaces`, `allow-from-openshift-ingress`, `allow-from-openshift-monitoring`, `allow-from-openshift-virtualization-namespaces`, `allow-from-redhat-ods-app-to-mariadb`, `allow-from-redhat-ods-app-to-mm` e `allow-same-namespace`. Una NetworkPolicy nostra si sommerebbe a queste, quindi non stringe il traffico: il disegno resta in `docs/resilienza-m3.md` e `k8s/networkpolicy.yaml` non è stato applicato.
 
 ## Osservato
 
-- 6.1 Con `CATALOG_DELAY_MS=5000` nel processo nuovo, venti `POST /orders` paralleli hanno risposto tutti 503. Nel log: 40 `ritento la chiamata` e un `circuito aperto`. La richiesta successiva ha risposto 503 in 0,37 secondi. Il ritardo va letto all'avvio: un rollout che lascia in servizio il pod vecchio non lo applica.
-- 6.2 Tolto il ritardo e riavviato solo il catalogo, dopo 16 secondi un ordine ha risposto 201 in 0,42 secondi e `circuit_breaker_state` era 0.
-- 6.3 Venti ordini sul prodotto 999999 hanno risposto tutti 422, con zero `ritento la chiamata`.
-- 6.4 La creazione ha usato il trace `cee34df293bc630880bbb5bb5944d094` anche nel catalogo. La conferma ha usato `2ebe2bc521670056073227608cca1db3` anche in notification-service.
+- 6.1 Con `CATALOG_DELAY_MS=5000` nel processo nuovo, venti `POST /orders` paralleli hanno risposto tutti 503. Nel log: 40 `ritento la chiamata` e un `circuito aperto`. La richiesta successiva ha risposto 503 in 0,38 secondi.
+- 6.2 Tolto il ritardo e riavviato solo il catalogo, dopo 16 secondi un ordine ha risposto 201 in 0,44 secondi e `circuit_breaker_state` era 0.
+- 6.3 Venti ordini sul prodotto 999999, letti sul pod appena avviato, hanno risposto tutti 422, con zero `ritento la chiamata`.
+- 6.4 La creazione ha usato il trace `c1a88925f42f96d8d012e7cbb12d852a` anche nel catalogo. La conferma ha usato `2f91cfd7d840992e7da71d14e204148f` anche in notification-service.
 - 6.5 `http_server_duration_seconds_count` ha le route `/orders` e `/orders/:id/confirm`, non l'id dell'ordine.
-- 6.6 Con order-db spento il pod è diventato non pronto e i restart sono passati da 0 a 1. La correzione, che chiude l'errore di connessione nel relay e nel controllo scadenze, è nel commit `f339e56`. L'immagine nuova non è stata costruita: il 9 novembre la console, dopo il login Red Hat, risponde «Could not find user».
-- 6.7 Sotto carico le repliche pronte di catalog-service sono passate da 1 a 3.
-- 6.8 La password di catalog-db è stata cambiata nel Secret, il database e catalog-service sono stati riavviati, `/health/ready` ha risposto 200 e il numero di build è rimasto 13. Il ServiceMonitor `eshop` è stato creato.
+- 6.6 Con order-db a zero, dopo 60 secondi il pod era non pronto, `/health/ready` rispondeva 503 e i restart sono rimasti 0. Al ritorno del database il servizio è tornato pronto da solo. La prima immagine usciva ancora, perché il pool trattava la chiusura della connessione come errore non gestito: il commit `5edf776` lo registra e lascia il processo in vita.
+- 6.7 Sotto carico le repliche di catalog-service sono passate da 1 a 3. Spento il carico, dopo la finestra di discesa sono tornate a 1.
+- 6.8 La password di catalog-db è stata cambiata nel database e nel Secret, database e servizio sono stati riavviati, `/health/ready` ha risposto 200 e le build di catalog-service sono rimaste 2. Il ServiceMonitor `eshop` è stato creato.
 - 6.9 `CB_RESET_MS` è rimasto 15000 nel processo subito dopo la modifica della ConfigMap. Dopo il rollout del solo order-service era 30000. Poi è stato riportato a 15000.
 
 ## Esiti attesi dalla guida

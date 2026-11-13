@@ -1,14 +1,14 @@
 # Verifiche Milestone 2
 
-Osservato sul cluster il 29 ottobre 2026.
+Osservato sul progetto `daniele-vespa-dev` il 13 novembre 2026.
 
-- 6.1 La prima conferma dell'ordine 2 ha risposto 202. La seconda ha risposto 200. In outbox ci sono due righe con la stessa chiave: il comando `payment.commands` e, dopo l'autorizzazione, l'evento `orders.events`. La seconda conferma non ne ha aggiunta una terza.
-- 6.2 Con notification-service spento il gruppo non aveva membri e il LAG era 1, 3 e 0 sulle tre partizioni. Al ritorno il LAG è tornato a 0 su tutte.
-- 6.3 Rimettere `published_at` a null ha prodotto una riga `duplicato scartato` e nessuna email nuova nello stesso intervallo.
-- 6.4 Il reset di `orders.events` per il gruppo `notification-service` è stato rifiutato: lo stato del gruppo era ancora Stable. Senza membri inattivi Kafka non sposta gli offset, quindi la rilettura non è stata osservata.
+- 6.1 La prima conferma dell'ordine 2 ha risposto 202. La seconda ha risposto 200. In outbox le righe con quella chiave sono rimaste 2: la seconda conferma non ne ha aggiunta una.
+- 6.2 Con notification-service spento il gruppo non aveva membri e il LAG era 1 sulle partizioni 0 e 2. Al ritorno il LAG era 0 su tutte e tre.
+- 6.3 Rimettere `published_at` a null ha prodotto una riga `duplicato scartato`.
+- 6.4 Con il deployment a zero e i pod cancellati, il reset di `orders.events` ha portato l'offset a 0 sulle tre partizioni. Al ritorno del servizio il log contava 8 `duplicato scartato`.
 - 6.5 Con Kafka a zero repliche la conferma ha risposto 202 e in outbox c'era una riga senza `published_at`. A broker tornato, le righe non pubblicate erano 0.
-- 6.6 Lo stesso spegnimento e riavvio ha consegnato la riga rimasta in outbox. Il volume e il `CLUSTER_ID` non sono stati cancellati.
-- 6.7 Con `RELAY_ENABLED=false` nel processo nuovo, la conferma 202 dell'ordine 63 ha lasciato 1 riga non pubblicata. Rimesso `true` e riavviato il servizio, le righe non pubblicate sono tornate a 0.
+- 6.6 Il volume non è stato cancellato: al ritorno del broker la riga rimasta è stata pubblicata.
+- 6.7 Con `RELAY_ENABLED=false` nel processo nuovo, la conferma 202 dell'ordine 6 ha lasciato 1 riga non pubblicata. Rimesso `true` e riavviato il servizio, le righe non pubblicate sono tornate a 0.
 - 6.8 Il testo `questo non e JSON` è in `notification.dlq` con header `x-errore` e `x-origine: orders.events/2/3`.
 
 ## 6.9

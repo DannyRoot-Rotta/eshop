@@ -2,17 +2,17 @@
 
 Permessi osservati: create su pipelineruns.tekton.dev, cronjobs e rolebindings è consentito.
 
-## Osservato il 29 ottobre 2026
+## Osservato il 13 novembre 2026
 
-- 7.1 La conferma ha risposto 202. L'ordine è poi risultato `CONFIRMED`, il pagamento `AUTHORIZED` e nel log di notification-service c'era l'email.
-- 7.2 Un ordine da 60000 centesimi (50 tazze) ha avuto il pagamento `REJECTED` con motivo «importo oltre il limite di 500 euro». L'ordine è passato a `CANCELLED` con `pagamento rifiutato: importo oltre il limite di 500 euro`.
-- 7.3 Con payment-service spento, dopo 40 secondi l'ordine 40 era `CANCELLED` per «nessuna risposta dal pagamento entro il tempo massimo». Al ritorno del servizio il pagamento è `VOIDED` con motivo «autorizzazione arrivata dopo l'annullamento».
-- 7.4 Una seconda conferma dell'ordine 1 ha risposto 200. Il reset di `payment.commands` è stato rifiutato perché il gruppo `payment-service` era ancora Stable, quindi i `duplicato` da rilettura non sono stati contati.
+- 7.1 La conferma dell'ordine 41 ha risposto 202. L'ordine è poi risultato `CONFIRMED` e il pagamento `AUTHORIZED`.
+- 7.2 Un ordine da 60000 centesimi ha avuto il pagamento `REJECTED` con motivo «importo oltre il limite di 500 euro». L'ordine è passato a `CANCELLED` con `pagamento rifiutato: importo oltre il limite di 500 euro`.
+- 7.3 Con payment-service spento, l'ordine 43 è diventato `CANCELLED` per «nessuna risposta dal pagamento entro il tempo massimo». Al ritorno del servizio il pagamento è `VOIDED` con motivo «autorizzazione arrivata dopo l'annullamento».
+- 7.4 Con il deployment a zero e i pod cancellati, il reset di `payment.commands` ha portato l'offset a 0 sulle tre partizioni. Al ritorno del servizio il log contava 12 `duplicato`.
 - 7.5 In `payment.dlq` c'è `non sono json` con `x-errore` e `x-origine: payment.commands/2/5`.
-- 7.6 La Pipeline `payment-ci` è nel cluster, ma nessuna PipelineRun è stata eseguita. L'overlay punta ancora a `payment-service:latest`. Il 9 novembre la console non riconosce più l'utente, quindi build, tag dello sha e rollback non sono stati rifatti.
+- 7.6 La PipelineRun `payment-ci-6qb8b` è riuscita e ha taggato `payment-service:f9522ca`. Il commit dell'overlay ha portato il Deployment su quell'immagine, con una replica e limite 50000. Il revert dello stesso commit, riapplicato, ha riportato l'immagine a `payment-service:latest`.
 - 7.7 Con payment-service a zero repliche e `PAYMENT_LIMIT_CENTS=100`, un job con il service account `riconciliatore` ha applicato `k8s/overlays/sandbox`. Subito dopo le repliche erano 1 e il limite 50000.
 
-Il riconciliatore è stato sospeso durante le prove che spengono payment-service, poi riattivato.
+Il riconciliatore è stato lasciato sospeso a fine prove, così non consuma quota. I servizi restano accesi.
 
 ## Esiti attesi dalla guida
 
