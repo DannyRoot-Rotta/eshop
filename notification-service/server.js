@@ -22,6 +22,9 @@ const pool = new Pool({
   user: process.env.DB_DATABASE_USER,
   password: process.env.DB_DATABASE_PASSWORD,
 });
+pool.on('error', (err) => {
+  log.error({ error: err.message }, 'connessione inattiva chiusa');
+});
 
 let consumerReady = false;
 const num = (name, def) => Number(process.env[name] ?? def);
