@@ -62,8 +62,9 @@ async function consume({ topic, groupId, dlqTopic, pool, handler, onReady }) {
           const carrier = {};
           propagation.inject(context.active(), carrier);
           for (let attempt = 1; ; attempt++) {
-            const db = await pool.connect();
+            let db;
             try {
+              db = await pool.connect();
               await db.query('BEGIN');
               if (num('PAYMENT_DELAY_MS', 0) > 0) await sleep(num('PAYMENT_DELAY_MS', 0));
               const outcome = await handler(db, msg, carrier.traceparent);
@@ -71,20 +72,23 @@ async function consume({ topic, groupId, dlqTopic, pool, handler, onReady }) {
               log.info({ type: msg.type, order_id: msg.data.orderId, outcome }, 'messaggio elaborato');
               break;
             } catch (err) {
-              await db.query('ROLLBACK').catch(() => {});
+              if (db) await db.query('ROLLBACK').catch(() => {});
               if (err instanceof SyntaxError) return await toDlq(err);
-              if (attempt >= num('MAX_ATTEMPTS', 3)) {
+              const dbDown = !db || ['ECONNREFUSED', 'ENOTFOUND', 'ECONNRESET', 'ETIMEDOUT', '57P01', '08006', '08001', '08004', '53300'].includes(err.code)
+                || /ECONNREFUSED|ENOTFOUND|Connection terminated|timeout exceeded|the database system is|Connection refused/i.test(err.message || '');
+              if (!dbDown && attempt >= num('MAX_ATTEMPTS', 3)) {
                 log.error({ error: err.message }, 'errore persistente: esco e lascio ripartire il Pod');
                 process.exit(1);
               }
-              const wait = Math.random() * Math.min(
-                num('RETRY_CAP_MS', 5000),
-                num('RETRY_BASE_MS', 200) * 2 ** attempt
-              );
-              log.warn({ attempt, wait_ms: Math.round(wait), error: err.message }, 'errore transitorio, ritento');
+              const wait = dbDown
+                ? 2000
+                : Math.random() * Math.min(num('RETRY_CAP_MS', 5000), num('RETRY_BASE_MS', 200) * 2 ** attempt);
+              log.warn({ attempt, wait_ms: Math.round(wait), error: err.message }, dbDown
+                ? 'database non raggiungibile, ritento senza uscire'
+                : 'errore transitorio, ritento');
               await sleep(wait);
             } finally {
-              db.release();
+              if (db) db.release();
             }
           }
           await consumer.commitOffsets(next);
